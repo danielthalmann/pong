@@ -1,0 +1,360 @@
+<html>
+<head>
+    <title>test boule qui tombe</title>
+    <style>
+        #cv{
+            width: 500px; 
+            height: 500px;
+            background-color: black;
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="cv" width="500" height="500">
+    </canvas >
+
+    
+    <script>
+
+        var canvas = document.getElementById('cv');
+        if (!canvas.getContext) {
+            throw "Error";
+        }
+        var ctx = canvas.getContext('2d');
+
+        const vector = function (_x, _y)
+        {
+            this.x = _x || 0.0;
+            this.y = _y || 0.0;
+
+            this.log = function() {
+                console.log('vector', this.x, this.y);
+                return this;
+            }
+
+            this.normalize = function () {
+                const xy = (this.x + this.y);
+                this.x /= xy;
+                this.y /= xy;
+                return this;
+            }
+
+            this.add = function (vect)
+            {
+                this.x += vect.x;
+                this.y += vect.y;
+                return this;
+            }
+            this.sub = function (vect)
+            {
+                this.x -= vect.x;
+                this.y -= vect.y;
+                return this;
+            }
+
+            this.scalarMulti = function(val)
+            {
+                this.x *= val;
+                this.y *= val;
+                return this;
+            }
+
+            this.copy = function()
+            {
+                return new vector(this.x, this.y);
+            }
+            this.up = function()
+            {
+                return new vector(0.0, -1.0);
+            }
+            this.down = function()
+            {
+                return new vector(0.0, 1.0);
+            }
+            this.left = function()
+            {
+                return new vector(-1.0, 0.0);
+            }
+            this.right = function()
+            {
+                return new vector(1.0, 0.0);
+            }
+        }
+
+        const bound = function (_left, _top, _right, _bottom) {
+            this.left = _left || 0.0;
+            this.top = _top || 0.0;
+            this.right = _right || 0.0;
+            this.bottom = _bottom || 0.0;
+
+            
+            this.inBound = function (b) {
+                let collision = false;
+                if (this.right >= b.left 
+                  && this.left <= b.right 
+                  && this.bottom >= b.top 
+                  && this.top <= b.bottom)
+                    collision = true;
+                return collision;
+
+            }
+        }
+
+        const deltatime = function() {
+
+            var current = (new Date()).getTime();
+            
+            this.delta = 0.0;
+            this.begin = 0.0;
+            this.enable = true;
+
+            window.addEventListener("focus", (event) => {
+                this.enable = true;
+                current = (new Date()).getTime();
+            });
+
+            window.addEventListener("blur", (event) => {
+                this.enable = false;
+                this.delta = 0.0;
+            });
+
+
+            this.tick = function() 
+            {
+                if (! this.enable)
+                    return ;
+                let newT = (new Date()).getTime();
+                this.delta = (newT - current) / 1000;
+                current = newT;
+                this.begin += this.delta;
+                return this.delta;
+            }
+            
+        }
+
+        const keyb = function() {
+            
+            this.up = false;
+            this.down = false;
+            this.left = false;
+            this.right = false;
+            this.space = false;
+
+            window.addEventListener("keydown", (event) => {
+                if (event.key === "ArrowUp") 
+                    this.up = true;
+
+                if (event.key === "ArrowDown") 
+                    this.down = true;
+
+                if (event.key === "ArrowRight") 
+                    this.right = true;
+                
+                if (event.key === "ArrowLeft")
+                    this.left = true;
+                
+                if (event.key === " ")
+                    this.space = true;
+                
+            });
+            window.addEventListener("keyup", (event) => {
+                if (event.key === "ArrowUp") 
+                    this.up = false;
+
+                if (event.key === "ArrowDown") 
+                    this.down = false;
+
+                if (event.key === "ArrowRight") 
+                    this.right = false;
+                
+                if (event.key === "ArrowLeft")
+                    this.left = false;
+
+                if (event.key === " ")
+                    this.space = false;
+
+            });
+
+        }
+
+        var ballmesh = function ()
+        {
+            this.x = 100.0;
+            this.y = 100.0;
+            this.v = (new vector(0.0, 0.0));
+            this.g = 20.81;
+            this.m = 10;
+            this.radius = 20;
+            this.color = 'orange';
+
+            this.draw = function() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, true);
+                ctx.closePath();
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            this.gravity = function() {
+                return (new vector()).down().scalarMulti(this.g * timer.delta);
+            }
+
+            this.translate = function(vect) {
+                this.v = vect;
+                this.x += vect.x ;
+                this.y += vect.y ;
+            }
+
+            this.getCollider = function(pos) {
+
+            return new bound(this.x - this.radius + (pos.x), 
+                            this.y - this.radius + (pos.y), 
+                            this.x + this.radius + (pos.x), 
+                            this.y + this.radius + (pos.y));
+            }
+
+            this.onCollide = function(mesh, newPos) {
+                return mesh.getCollider(new vector()).inBound(this.getCollider(newPos));
+            }
+
+
+        };
+
+        var rectmesh = function ()
+        {
+            this.x = 200.0;
+            this.y = 200.0;
+            this.v = (new vector(0.0, 0.0));
+            this.g = 20.81;
+            this.m = 10;
+            this.h = 50;
+            this.w = 50;
+            this.color = 'blue';
+
+            this.draw = function() {
+                ctx.beginPath();
+                ctx.rect(this.x, this.y, this.w, this.h);
+                ctx.closePath();
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+
+            this.gravity = function() {
+                return (new vector()).down().scalarMulti(this.g * timer.delta);
+            }
+
+            this.translate = function(vect) {
+                this.v = vect;
+                this.x += vect.x ;
+                this.y += vect.y ;
+            }
+            
+            this.getCollider = function(pos) {
+
+                return new bound(this.x + (pos.x), 
+                                 this.y + (pos.y), 
+                                 this.x + this.w + (pos.x), 
+                                 this.y + this.h + (pos.y));
+            }
+
+            this.onCollide = function(mesh, newPos) {
+                return mesh.getCollider(new vector()).inBound(this.getCollider(newPos));
+            }
+
+        };
+        
+        
+        var timer = new deltatime();
+        var keyboard = new keyb();
+        var ball = new ballmesh();
+        var rectangle = new rectmesh();
+
+        var player = new rectmesh();
+        player.x = 10;
+        player.y = 10,
+        player.w = 20;
+        player.h = 100;
+        player.color = 'white';
+
+        var second = 0;
+
+        function checkColision(meshA, meshB, newPos, bound)
+        {
+            let testPos;
+
+            testPos = newPos.copy();
+            testPos.y = 0.0;
+            if (meshA.onCollide(meshB, testPos))
+                newPos.x = -(newPos.x) * bound;
+
+            testPos = newPos.copy();
+            testPos.x = 0.0;
+            if (meshA.onCollide(meshB, testPos))
+                newPos.y = -(newPos.y) * bound;
+
+            return newPos.copy();
+        }
+
+        function draw()
+        {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+
+            let force = 21;
+
+            let jump_force = 31;
+
+            let bound = 1 / 2.3;
+
+            let newPos = ball.v.copy();
+
+            if (keyboard.up)
+                newPos.add((new vector).up().scalarMulti(force * timer.delta));
+            if (keyboard.down)
+                newPos.add((new vector).down().scalarMulti(force * timer.delta));
+            if (keyboard.right)
+                newPos.add((new vector).right().scalarMulti(force * timer.delta));
+            if (keyboard.left)
+                newPos.add((new vector).left().scalarMulti(force * timer.delta));
+            if (keyboard.space)
+                newPos.add((new vector).up().scalarMulti(jump_force * timer.delta));
+
+//            newPos.add(ball.gravity());
+            
+            if (newPos.x != 0.0) {
+                newPos.x /= 1.01;
+            }
+
+            if (ball.y + newPos.y + (ball.radius) > canvas.height || ball.y + newPos.y - (ball.radius) < 0) {
+                newPos.y = -(newPos.y) * bound;
+            }
+
+            if (ball.x + newPos.x + (ball.radius) > canvas.width || ball.x + newPos.x - (ball.radius) < 0) {
+                newPos.x = -(newPos.x) * bound;
+            }
+
+            checkColision(ball, rectangle, newPos, bound);
+            checkColision(ball, player, newPos, bound);
+
+            ball.translate(newPos);
+
+            
+            ball.draw();
+            rectangle.draw();
+            player.draw();
+            timer.tick();
+               
+            window.requestAnimationFrame(draw);
+
+
+        }
+
+        window.requestAnimationFrame(draw);
+      
+
+    </script>
+
+
+</body>
+</html>
