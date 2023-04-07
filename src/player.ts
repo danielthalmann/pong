@@ -12,19 +12,12 @@ export default class Player extends Rectangle
     canvas : Size;
     timer : Timer;
 
-    constructor(pnum : number, _canvas : Size, _timer : Timer)
+    constructor(_canvas : Size, _timer : Timer)
     {
         super();
         this.canvas = _canvas;
         this.timer = _timer;
         this.setSize(10.0, 80.0);
-        if (pnum == 1) {
-            this.setPosition(10.0, 10.0);
-            this.color = 'red';
-        } else {
-            this.setPosition(this.canvas.w - 20.0, this.canvas.h - this.size.h - 10.0);
-            this.color = 'yellow';
-        }
     }
 
     update(keyboard : Keyboard) : void

@@ -15,10 +15,12 @@ class Pong
     canvas : HTMLCanvasElement;
     keyboard : Keyboard = new Keyboard();
     meshes : Array<Mesh> = [];
+    colliders : Array<Mesh> = [];
     timer : Timer = new Timer();
     player1 : Player;
     player2 : Player;
     ball : Ball;
+    size : Size;
 
     constructor()
     {
@@ -36,9 +38,43 @@ class Pong
         this.canvas = _canvas;
         this.context = _context;
 
-        this.player1 = new Player(1, new Size(this.canvas.width, this.canvas.height), this.timer);
-        this.player2 = new Player(2, new Size(this.canvas.width, this.canvas.height), this.timer);
-        this.ball = new Ball(new Size(this.canvas.width, this.canvas.height), this.timer);
+        this.size = new Size(this.canvas.width, this.canvas.height);
+
+        this.player1 = new Player(this.size, this.timer);
+        this.player2 = new Player(this.size, this.timer);
+        this.ball = new Ball(this.size, this.timer);
+
+        let gutter : number = 20.0;
+
+        this.player1.setPosition(gutter, 10.0);
+        this.player1.setColor('red');
+
+        this.player2.setPosition(this.size.w - gutter - this.player2.size.w, this.size.h - this.player2.size.h - 10.0);
+        this.player2.setColor('yellow');
+        
+        const rect_top : Rectangle = new Rectangle();
+        rect_top.setSize(this.canvas.width - 20.0, 10.0);
+        rect_top.setPosition(10.0, 10.0);
+        rect_top.setColor('white');
+
+        this.colliders.push(rect_top);
+
+        const rect_bottom : Rectangle = new Rectangle();
+        rect_bottom.setSize(this.canvas.width - 20.0, 10.0);
+        rect_bottom.setPosition(10.0, this.size.h - 30.0);
+        rect_bottom.setColor('white');
+
+        this.colliders.push(rect_bottom);
+
+        this.colliders.push(this.player1);
+        this.colliders.push(this.player2);
+
+        this.meshes.push(rect_top);
+        this.meshes.push(rect_bottom);   
+        this.meshes.push(this.ball);
+        this.meshes.push(this.player1);
+        this.meshes.push(this.player2);
+
     }
 
     run() : void
@@ -52,22 +88,7 @@ class Pong
 
     init() : void
     {
-      
-        const sphere : Sphere = new Sphere();
-        sphere.setRadius(15.0);
-        sphere.setPosition(50.0, 50.0);
-        sphere.setColor('white');
-
-        const rectangle : Rectangle = new Rectangle();
-        rectangle.setSize(20.0, 100.0);
-        rectangle.setPosition(10.0, 10.0);
-        rectangle.setColor('white');
-
-        this.ball.setPosition(10.0, 10.0);
-
-        this.meshes.push(this.ball);
-        this.meshes.push(this.player1);
-        this.meshes.push(this.player2);
+        this.ball.setPosition(50.0, 50.0);
     }
 
     update () : void
@@ -75,26 +96,33 @@ class Pong
         this.timer.tick();
 
         this.player1.update(this.keyboard);
-        // this.player2.update(this.keyboard);
+        this.player2.update(this.keyboard);
+
+        for (let index = 0; index < this.colliders.length; index++) {
+            const mesh = this.colliders[index];
+            this.checkBallCollision(mesh);
+        }
 
         this.ball.update();
+
     }
 
-    checkColision(meshA : Mesh, meshB : Mesh, newPos : Vector, bounce : number) : Vector
+    checkBallCollision(meshB : Mesh) : void
     {
-        let testPos;
+        let newPos : Vector = this.ball.getNextPosition();
+        let testPos : Vector;
 
         testPos = newPos.copy();
         testPos.y = 0.0;
-        if (meshA.onCollide(meshB, testPos))
-            newPos.x = -(newPos.x) * bounce;
+        if (this.ball.onCollide(meshB, testPos)) {
+            this.ball.vector.x = -(this.ball.vector.x);
+        }
 
         testPos = newPos.copy();
         testPos.x = 0.0;
-        if (meshA.onCollide(meshB, testPos))
-            newPos.y = -(newPos.y) * bounce;
-
-        return newPos.copy();
+        if (this.ball.onCollide(meshB, testPos)) {
+            this.ball.vector.y = -(this.ball.vector.y);
+        }
     }    
 
     draw () : void 
