@@ -1,65 +1,72 @@
 
-export class vector
+export default class Vector
 {
     x: number = 0.0;
     y: number = 0.0;
 
-    constructor(_x: number|null, _y: number|null)
+    constructor(_x ?: number|null, _y ?: number|null)
     {
         this.x = _x || 0.0;
         this.y = _y || 0.0;
     }
 
-    log() : vector {
+    log() : Vector 
+    {
         console.log('vector', this.x, this.y);
         return this;
     }
 
-    normalize(): vector {
+    normalize(): Vector 
+    {
         const xy = (this.x + this.y);
         this.x /= xy;
         this.y /= xy;
         return this;
     }
 
-    add (vect : vector)
+    add (vect : Vector) : Vector
     {
         this.x += vect.x;
         this.y += vect.y;
         return this;
     }
-    sub (vect : vector)
+
+    sub (vect : Vector) : Vector
     {
         this.x -= vect.x;
         this.y -= vect.y;
         return this;
     }
 
-    scalarMulti(val : number)
+    scalarMulti(val : number) : Vector
     {
         this.x *= val;
         this.y *= val;
         return this;
     }
 
-    copy() : vector
+    copy() : Vector
     {
-        return new vector(this.x, this.y);
+        return new Vector(this.x, this.y);
     }
-    up() : vector
+
+    up() : Vector
     {
-        return new vector(0.0, -1.0);
+        return new Vector(0.0, -1.0);
     }
-    down() : vector
+
+    down() : Vector
     {
-        return new vector(0.0, 1.0);
+        return new Vector(0.0, 1.0);
     }
-    left() : vector
+
+    left() : Vector
     {
-        return new vector(-1.0, 0.0);
+        return new Vector(-1.0, 0.0);
     }
-    right() : vector
+
+    right() : Vector
     {
-        return new vector(1.0, 0.0);
+        return new Vector(1.0, 0.0);
     }
 }

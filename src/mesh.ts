@@ -1,46 +1,80 @@
-import timer from "./timer";
+import Timer from "./timer.js";
+import Vector from "./vector.js";
+import Size from "./size.js";
+import Bound from "./bound.js";
 
-class tmesh
+export default class Mesh
 {
-    x : number = 200.0;
-    y : number = 200.0;
-
-    ctx : CanvasRenderingContext2D;
+    position : Vector = new Vector();
+    size : Size = new Size();
+    collider: Bound = new Bound();
+    gravity : number = 20;
+    color : string = 'blue';
+    name : string = 'mesh';
     
-    g = 20.81;
-    m = 10;
-    color = 'blue';
-
-    constructor (_ctx : CanvasRenderingContext2D)
+    constructor ()
     {
-        this.ctx = _ctx;
     }
 
-    draw() 
+    setPosition(_position : Vector|number, _y ?: number) : Mesh
+    {
+        if (typeof _position === 'object') {
+            this.position = _position;
+        } else {
+            this.position = new Vector(_position, _y);
+        }
+        return this;
+    }
+
+    setColor(_color : string) : Mesh
+    {
+        this.color = _color;
+        return this;
+    }
+
+    setSize(_size : Size|number, _y ?: number) : Mesh
+    {
+        if (typeof _size === 'object') {
+            this.size = _size;
+        } else {
+            this.size = new Size(_size, _y);
+        }
+        return this;
+    }
+
+    draw(context : CanvasRenderingContext2D) : void
     {
         
     }
 
-    this.gravity = function() {
-        return (new vector()).down().scalarMulti(this.g * timer.delta);
+    updateGravity(timer : Timer) : Vector
+    {
+        return (new Vector()).down().scalarMulti(this.gravity * timer.delta);
     }
 
-    this.translate = function(vect) {
-        this.v = vect;
-        this.x += vect.x ;
-        this.y += vect.y ;
+    translate(vect : Vector) : Mesh
+    {
+        this.position.add(vect);
+        return this;
     }
     
-    this.getCollider = function(pos) {
+    getCollider(pos ?: Vector) : Bound 
+    {
 
-        return new bound(this.x + (pos.x), 
-                         this.y + (pos.y), 
-                         this.x + this.w + (pos.x), 
-                         this.y + this.h + (pos.y));
+        if (typeof pos === 'undefined') {
+            pos = new Vector();
+        }
+
+        let lefttop : Vector = this.position.copy().add(pos);
+        let rightbottom : Vector = lefttop.copy().add(this.size.toVector());
+
+        return new Bound(lefttop,
+                        rightbottom);
     }
 
-    this.onCollide = function(mesh, newPos) {
-        return mesh.getCollider(new vector()).inBound(this.getCollider(newPos));
+    onCollide(mesh : Mesh, new_position : Vector) : boolean
+    {
+        return mesh.getCollider().inBound(this.getCollider(new_position));
     }
 
 };

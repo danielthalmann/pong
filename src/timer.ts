@@ -1,6 +1,6 @@
 
 
-export default class timer {
+export default class Timer {
 
     _current : number;
     delta : number = 0.0;
@@ -25,7 +25,6 @@ export default class timer {
             this.delta = 0.0;
         });
     }
-
 
     tick() : number
     {

@@ -1,4 +1,4 @@
-class keyboard
+export default class Keyboard
 {  
     up : boolean = false;
     down : boolean = false;
@@ -6,7 +6,8 @@ class keyboard
     right : boolean = false;
     space : boolean = false;
 
-    constructor() {
+    constructor() 
+    {
         
         window.addEventListener("keydown", (event) => {
             if (event.key === "ArrowUp") 
@@ -23,7 +24,6 @@ class keyboard
             
             if (event.key === " ")
                 this.space = true;
-            
         });
         
         window.addEventListener("keyup", (event) => {
@@ -41,7 +41,6 @@ class keyboard
         
             if (event.key === " ")
                 this.space = false;
-        
         });
         
     }
