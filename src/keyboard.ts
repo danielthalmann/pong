@@ -6,6 +6,8 @@ export default class Keyboard
     right : boolean = false;
     space : boolean = false;
 
+    keys: Map<string, boolean> = new Map();
+
     constructor() 
     {
         
@@ -24,9 +26,12 @@ export default class Keyboard
             
             if (event.key === " ")
                 this.space = true;
+
+            this.keys.set(event.key, true);
         });
         
         window.addEventListener("keyup", (event) => {
+
             if (event.key === "ArrowUp") 
                 this.up = false;
         
@@ -41,8 +46,18 @@ export default class Keyboard
         
             if (event.key === " ")
                 this.space = false;
+            
+            this.keys.set(event.key, false);
         });
         
+    }
+
+    isKeyDown(key: string)
+    {
+        if(!this.keys.has(key))
+            return false;
+
+        return this.keys.get(key);
     }
 
 }
