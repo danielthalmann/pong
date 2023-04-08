@@ -8,6 +8,7 @@ import Ball from './ball.js';
 import Size from './size.js';
 import Controller from './controller.js';
 import Bound from './bound.js';
+import Text from './text.js';
 
 class Pong
 {
@@ -136,7 +137,10 @@ class Pong
                 const bound = this.bounds[index];
 
                 if(this.ball.getCollider().inBound(bound))
+                {
+                    this.players[1-index].score++;
                     this.init();
+                }
                 
             }
 
@@ -171,11 +175,25 @@ class Pong
         if (this.ball.onCollide(meshB, testPos)) {
             this.ball.vector.y = -(this.ball.vector.y);
         }
-    }    
+    }
+
+    clear() : void 
+    {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
 
     draw () : void 
     {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        if (this.status === 'wait') {
+            for (let index = 0; index < this.players.length; index++) {
+                let txt : Text = new Text();
+                txt.setPosition(this.size.w / 4 + ((this.size.w / 2) * index), this.size.h / 4);
+                txt.content = <string>'' + this.players[index].score;
+                txt.draw(this.context);
+            }
+
+        }
 
         for (let index = 0; index < this.meshes.length; index++) {
             const mesh = this.meshes[index];
@@ -187,6 +205,7 @@ class Pong
 function loop() : void
 {
     pong.update();
+    pong.clear();
     pong.draw();
 
     window.requestAnimationFrame(loop);
